@@ -8,9 +8,9 @@ public class Book
     [Required]
     [StringLength(50, MinimumLength = 5)]
     public required string Title { get; set; }
+    public required int AuthorId { get; set; }
     [Required]
-    [StringLength(50, MinimumLength = 5)]
-    public required string Author { get; set; }
+    public required virtual Author Author { get; set; }
     [Required]
     [StringLength(500, MinimumLength = 20)]
     public required string Description { get; set; }

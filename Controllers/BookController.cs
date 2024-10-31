@@ -21,13 +21,15 @@ public class BookController(BookStoreContext context) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
     {
-        return await _context.Books.ToListAsync();
+        var books = await _context.Books.Include(book => book.Author).ToListAsync();
+        return books;
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Book>> GetBook(int id)
     {
-        var book = await _context.Books.FindAsync(id);
+        // include related data (Author) in the response
+        var book = await _context.Books.Include(book => book.Author).FirstOrDefaultAsync(b => b.Id == id);
 
         if (book == null)
         {
