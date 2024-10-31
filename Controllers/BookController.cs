@@ -1,4 +1,5 @@
 using System.Collections;
+using BookStoreApi.Contracts;
 using BookStoreApi.Data;
 using BookStoreApi.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -19,17 +20,39 @@ public class BookController(BookStoreContext context) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
+    public async Task<ActionResult<IEnumerable<BookContract>>> GetBooks()
     {
-        var books = await _context.Books.Include(book => book.Author).ToListAsync();
+        var books = await _context.Books.Include(book => book.Author).Select(book => new BookContract
+        {
+            Id = book.Id,
+            Title = book.Title,
+            Author = book.Author.Name,
+            Description = book.Description,
+            Category = book.Category,
+            Language = book.Language,
+            TotalPages = book.TotalPages,
+            CoverImageUrl = book.CoverImageUrl,
+            BookPdfUrl = book.BookPdfUrl
+        }).ToListAsync();
+
         return books;
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Book>> GetBook(int id)
+    public async Task<ActionResult<BookContract>> GetBook(int id)
     {
         // include related data (Author) in the response
-        var book = await _context.Books.Include(book => book.Author).FirstOrDefaultAsync(b => b.Id == id);
+        var book = await _context.Books.Include(book => book.Author).Select(book => new BookContract{
+            Id = book.Id,
+            Title = book.Title,
+            Author = book.Author.Name,
+            Description = book.Description,
+            Category = book.Category,
+            Language = book.Language,
+            TotalPages = book.TotalPages,
+            CoverImageUrl = book.CoverImageUrl,
+            BookPdfUrl = book.BookPdfUrl
+        }).FirstOrDefaultAsync(book => book.Id == id);
 
         if (book == null)
         {
@@ -52,7 +75,7 @@ public class BookController(BookStoreContext context) : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<Book>> UpdateBook(int id, Book book)
     {
-        if (id != book.Id)
+                if (id != book.Id)
         {
             return BadRequest();
         }

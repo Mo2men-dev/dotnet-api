@@ -1,3 +1,4 @@
+using BookStoreApi.Contracts;
 using BookStoreApi.Data;
 using BookStoreApi.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -18,15 +19,46 @@ public class AuthorController(BookStoreContext context) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Author>>> GetAuthors()
+    public async Task<ActionResult<IEnumerable<AuthorContract>>> GetAuthors()
     {
-        return await _context.Authors.ToListAsync();
+        var authors = await _context.Authors.Include(author => author.Books).Select(author => new AuthorContract
+        {
+            Id = author.Id,
+            Name = author.Name,
+            Books = author.Books.Select(book => new BookContract
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Description = book.Description,
+                Category = book.Category,
+                Language = book.Language,
+                TotalPages = book.TotalPages,
+                CoverImageUrl = book.CoverImageUrl,
+                BookPdfUrl = book.BookPdfUrl
+            }).ToList()
+        }).ToListAsync();
+
+        return authors;
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Author>> GetAuthor(int id)
+    public async Task<ActionResult<AuthorContract>> GetAuthor(int id)
     {
-        var author = await _context.Authors.FindAsync(id);
+        var author = await _context.Authors.Include(author => author.Books).Select(author => new AuthorContract{
+            Id = author.Id,
+            Name = author.Name,
+            Books = author.Books.Select(book => new BookContract
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Description = book.Description,
+                Category = book.Category,
+                Language = book.Language,
+                TotalPages = book.TotalPages,
+                CoverImageUrl = book.CoverImageUrl,
+                BookPdfUrl = book.BookPdfUrl
+            }).ToList()
+        }).FirstOrDefaultAsync(author => author.Id == id);
 
         if (author == null)
         {
